@@ -1,4 +1,5 @@
 import {
+  Alert,
   Button,
   SafeAreaView,
   ScrollView,
@@ -20,6 +21,7 @@ import AppTextInput from "../components/AppTextInput";
 import { CheckBox, colors } from "react-native-elements";
 import fonts from "../config/fonts";
 import { size } from "lodash";
+import { login } from "../constants/api";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -28,6 +30,16 @@ const LoginScreen: React.FC<Props> = ({ navigation: { navigate } }) => {
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
+  const handleLogin = async () => {
+    try {
+      const data = await login(email, password);
+      Alert.alert('Login Successful', `Access Token: ${data.accessToken}`);
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      Alert.alert('Login Failed', errorMessage);
+      console.log(errorMessage);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -66,7 +78,7 @@ const LoginScreen: React.FC<Props> = ({ navigation: { navigate } }) => {
         <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
       </TouchableOpacity>
 
-        <TouchableOpacity style={styles.registerButton}>
+        <TouchableOpacity style={styles.registerButton} onPress={handleLogin} >
           <Text style={styles.registerButtonText}>Login</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigate("Register")}  style={styles.title}>

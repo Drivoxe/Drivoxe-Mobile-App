@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import { CheckBox } from 'react-native-elements';
@@ -16,19 +17,49 @@ import Font from "../constants/Font";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
-import AppTextInput from "../components/AppTextInput";
+import { signup } from "../constants/api";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Register">;
 
 const RegisterScreen: React.FC<Props> = ({ navigation: { navigate } }) => {
   const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
+  const handleRegister = async () => {
+    console.log('Attempting registration...');
+  
+    try {
+      if (!termsAccepted) {
+        console.log('Terms not accepted');
+        throw new Error('You must accept the terms and conditions');
+      }
+  
+      if (password !== confirmPassword) {
+        console.log('Passwords do not match');
+        throw new Error('Passwords do not match');
+      }
+      console.log(firstName);
+      console.log(email);
+      console.log(password);
+      const data = await signup(firstName, email, password);
+      console.log('Registration successful:', data);
+      Alert.alert('Registration Successful', `Welcome ${data.firstName} . please verify your account`);
+
+    navigate("Login");
+  } catch (error: any) {
+    const errorMessage = (error as Error).message; // Explicitly cast error to Error type
+    Alert.alert('Registration Failed', errorMessage || 'An error occurred');
+    console.log(firstName);
+    console.log(email);
+    console.log(password);
+    console.error('Registration Error:', error); 
+  }
+  };
+  
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -76,7 +107,10 @@ const RegisterScreen: React.FC<Props> = ({ navigation: { navigate } }) => {
           value={confirmPassword}
           onChangeText={setConfirmPassword}
         />
-        <TouchableOpacity style={styles.registerButton}>
+        <TouchableOpacity
+          style={[styles.registerButton]}
+          onPress={handleRegister}
+        >
           <Text style={styles.registerButtonText}>Register</Text>
         </TouchableOpacity>
         <View style={styles.termsContainer}>
@@ -138,11 +172,11 @@ const styles = StyleSheet.create({
   },
   passwordInput: {
     flex: 1,
-    paddingRight: Spacing * 8, // Ensure space for eye icon
+    paddingRight: Spacing * 8,
   },
   eyeIcon: {
     position: 'absolute',
-    right: Spacing * 2 ,
+    right: Spacing * 2,
     bottom: Spacing * 4,
   },
   registerButton: {
@@ -157,6 +191,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  disabledButton: {
+    backgroundColor: Colors.gray,
   },
   termsContainer: {
     flexDirection: 'row',
