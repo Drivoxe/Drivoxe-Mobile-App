@@ -135,7 +135,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    marginBottom: Spacing * 2,
   },
   passwordInput: {
     flex: 1,
@@ -143,12 +142,13 @@ const styles = StyleSheet.create({
   },
   eyeIcon: {
     position: 'absolute',
-    right: Spacing,
+    right: Spacing * 2 ,
+    bottom: Spacing * 4,
   },
   registerButton: {
     width: '100%',
     padding: Spacing * 2,
-    backgroundColor: '#FF3D00',
+    backgroundColor: Colors.primary,
     borderRadius: Spacing,
     alignItems: 'center',
     marginBottom: Spacing * 2,

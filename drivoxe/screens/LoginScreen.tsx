@@ -1,4 +1,5 @@
 import {
+  Button,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -16,18 +17,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
 import AppTextInput from "../components/AppTextInput";
-import { CheckBox } from "react-native-elements";
+import { CheckBox, colors } from "react-native-elements";
+import fonts from "../config/fonts";
+import { size } from "lodash";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
 const LoginScreen: React.FC<Props> = ({ navigation: { navigate } }) => {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
 
 
   return (
@@ -63,10 +62,64 @@ const LoginScreen: React.FC<Props> = ({ navigation: { navigate } }) => {
             <Text>{isPasswordVisible ? '👁️' : '🙈'}</Text>
           </TouchableOpacity>
         </View>
-       
+        <TouchableOpacity onPress={() => navigate("Forget")}  style={styles.forgotPassword}>
+        <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+      </TouchableOpacity>
+
         <TouchableOpacity style={styles.registerButton}>
           <Text style={styles.registerButtonText}>Login</Text>
         </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigate("Register")}  style={styles.title}>
+        <Text style={styles.forgotPasswordText}>create an account</Text>
+      </TouchableOpacity>
+      <View style= {{
+        marginVertical : Spacing * 3,
+      }}>
+<Text style= {
+  {
+    fontFamily: Font ["poppins-bold"],
+    color: Colors.primary,
+    textAlign: "center",
+    fontSize: FontSize.small,
+  }
+}>   
+Or continue with
+</Text>
+<View style ={{
+marginTop: Spacing,
+flexDirection: "row",
+justifyContent: "center",
+}}>
+  <TouchableOpacity style= {{
+    padding: Spacing ,
+    backgroundColor: Colors.gray,
+    borderRadius: Spacing /2,
+    marginHorizontal: Spacing,
+
+  }}>
+<Ionicons name="logo-facebook" size={Spacing*3} />
+</TouchableOpacity> 
+ <TouchableOpacity style= {{
+    padding: Spacing ,
+    backgroundColor: Colors.gray,
+    borderRadius: Spacing /2,
+    marginHorizontal: Spacing,
+
+  }}>
+<Ionicons name="logo-google" size={Spacing*3}  />
+</TouchableOpacity> 
+ <TouchableOpacity style= {{
+    padding: Spacing ,
+    backgroundColor: Colors.gray,
+    borderRadius: Spacing /2,
+    marginHorizontal: Spacing,
+
+  }}>
+<Ionicons name="logo-apple" size={Spacing*3} />
+</TouchableOpacity>
+      
+</View>
+</View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -119,16 +172,17 @@ const styles = StyleSheet.create({
   },
   passwordInput: {
     flex: 1,
-    paddingRight: Spacing * 8, // Ensure space for eye icon
+    paddingRight: Spacing * 8, 
   },
   eyeIcon: {
     position: 'absolute',
-    right: Spacing,
+    right: Spacing * 2 ,
+    bottom: Spacing * 4,
   },
   registerButton: {
     width: '100%',
     padding: Spacing * 2,
-    backgroundColor: '#FF3D00',
+    backgroundColor: Colors.primary,
     borderRadius: Spacing,
     alignItems: 'center',
     marginBottom: Spacing * 2,
@@ -149,6 +203,16 @@ const styles = StyleSheet.create({
   },
   termsLink: {
     color: '#FF3D00',
+  },
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    marginTop: 0,
+    marginBottom: 10,
+  },
+  forgotPasswordText: {
+    color: Colors.text,
+    fontSize: FontSize.small,
+    fontWeight: 'bold',
   },
 });
 

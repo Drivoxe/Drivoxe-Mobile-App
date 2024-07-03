@@ -13,6 +13,8 @@ import RegisterScreen from "../screens/RegisterScreen";
 import Welcome from "../screens/WelcomeScreen";
 
 import { RootStackParamList } from "../types";
+import Stepper from "../components/stepper";
+import Forgetscreen from "../screens/forgetpassword";
 
 const theme = {
   ...DefaultTheme,
@@ -21,6 +23,7 @@ const theme = {
     background: Colors.background,
   },
 };
+
 
 export default function Navigation() {
   return (
@@ -36,16 +39,20 @@ export default function Navigation() {
  */
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+
 function RootNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-      }}
+      }}  initialRouteName="Stepper"
     >
+              <Stack.Screen name="Stepper" component={Stepper} options={{ headerShown: false }} />
       <Stack.Screen name="Welcome" component={Welcome} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="Forget" component={Forgetscreen} />
+
     </Stack.Navigator>
   );
 }

@@ -15,6 +15,8 @@ export type RootStackParamList = {
   Welcome: undefined;
   Login: undefined;
   Register: undefined;
+  Stepper: undefined;
+  Forget: undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =
