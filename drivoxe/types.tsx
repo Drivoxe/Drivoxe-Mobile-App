@@ -4,6 +4,7 @@
  */
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { Room } from "./config/types";
 
 declare global {
   namespace ReactNavigation {
@@ -17,6 +18,11 @@ export type RootStackParamList = {
   Register: undefined;
   Stepper: undefined;
   Forget: undefined;
+  Profile: undefined;
+  Home: undefined;
+  Details: { room: Room };
+  alldeals: undefined;
+
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =

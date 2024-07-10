@@ -1,3 +1,5 @@
+
+
 import {
   SafeAreaView,
   ScrollView,
@@ -17,7 +19,7 @@ import Font from "../constants/Font";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types";
-import { signup } from "../constants/api";
+import { signup } from "../services/api";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Register">;
 

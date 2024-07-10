@@ -1,3 +1,4 @@
+
 import {
   Alert,
   Button,
@@ -9,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Spacing from "../constants/Spacing";
 import FontSize from "../constants/FontSize";
 import Colors from "../constants/Colors";
@@ -21,7 +22,8 @@ import AppTextInput from "../components/AppTextInput";
 import { CheckBox, colors } from "react-native-elements";
 import fonts from "../config/fonts";
 import { size } from "lodash";
-import { login } from "../constants/api";
+import { login } from "../services/api";
+import { getToken } from "../constants/Token";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -29,17 +31,23 @@ const LoginScreen: React.FC<Props> = ({ navigation: { navigate } }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+
 
   const handleLogin = async () => {
     try {
       const data = await login(email, password);
-      Alert.alert('Login Successful', `Access Token: ${data.accessToken}`);
+      Alert.alert('Login Successful', `Access Token: ${data.access_token}`);
+      navigate("Home")
+     
     } catch (error) {
       const errorMessage = (error as Error).message;
       Alert.alert('Login Failed', errorMessage);
       console.log(errorMessage);
     }
   };
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -227,7 +235,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
-
-
-

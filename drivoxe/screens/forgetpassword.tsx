@@ -18,6 +18,7 @@ import {
   import { RootStackParamList } from "../types";
   import AppTextInput from "../components/AppTextInput";
   import { CheckBox, colors } from "react-native-elements";
+import { login, resetpassword } from "../services/api";
   
   type Props = NativeStackScreenProps<RootStackParamList, "Forget">;
   
@@ -27,6 +28,17 @@ import {
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   
   
+    const handlereset = async () => {
+      try {
+        const data = await resetpassword(email);
+        Alert.alert('REQUEST Successful', `check your email Access Token: ${data.name}`);
+        navigate("Login");
+      } catch (error) {
+        const errorMessage = (error as Error).message;
+        Alert.alert('Login Failed', errorMessage);
+        console.log(errorMessage);
+      }
+    };
     return (
       <SafeAreaView style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -45,7 +57,7 @@ import {
             onChangeText={setEmail}
           />
          
-          <TouchableOpacity  onPress={() =>  Alert.alert('an email has been sent') } style={styles.registerButton}>
+          <TouchableOpacity  onPress={handlereset} style={styles.registerButton}>
             <Text style={styles.registerButtonText}>recover account </Text>
           </TouchableOpacity>
         </ScrollView>
