@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Spacing from "../constants/Spacing";
 import FontSize from "../constants/FontSize";
 import Colors from "../constants/Colors";
@@ -22,37 +22,35 @@ import AppTextInput from "../components/AppTextInput";
 import { CheckBox, colors } from "react-native-elements";
 import fonts from "../config/fonts";
 import { size } from "lodash";
-import { login } from "../services/api";
+import { authService } from '../services/api';
 import { getToken } from "../constants/Token";
+import { AuthContext } from "../context/LoginProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
-const LoginScreen: React.FC<Props> = ({ navigation: { navigate } }) => {
+const LoginScreen: React.FC<Props> = ({ navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-
-
+  const authContext = useContext(AuthContext);
+  
   const handleLogin = async () => {
-    try {
-      const data = await login(email, password);
-      Alert.alert('Login Successful', `Access Token: ${data.access_token}`);
-      navigate("Home")
-     
-    } catch (error) {
-      const errorMessage = (error as Error).message;
-      Alert.alert('Login Failed', errorMessage);
-      console.log(errorMessage);
+    if (authContext) {
+      try {
+        await authContext.login(email, password);
+        // Navigate to protected route after successful login
+        authContext?.isAuthenticated;
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      console.error('AuthContext is undefined');
     }
   };
-  
-
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <TouchableOpacity onPress={() => navigate("Welcome")} style={styles.backButton}>
+        <TouchableOpacity onPress={() => navigation.navigate("Welcome")} style={styles.backButton}>
           <Text style={styles.backButtonText}>{'<'}</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Welcome</Text>
@@ -82,14 +80,14 @@ const LoginScreen: React.FC<Props> = ({ navigation: { navigate } }) => {
             <Text>{isPasswordVisible ? '👁️' : '🙈'}</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={() => navigate("Forget")}  style={styles.forgotPassword}>
+        <TouchableOpacity onPress={() => navigation.navigate("Forget")}  style={styles.forgotPassword}>
         <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
       </TouchableOpacity>
 
         <TouchableOpacity style={styles.registerButton} onPress={handleLogin} >
           <Text style={styles.registerButtonText}>Login</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigate("Register")}  style={styles.title}>
+        <TouchableOpacity onPress={() => navigation.navigate("Register")}  style={styles.title}>
         <Text style={styles.forgotPasswordText}>create an account</Text>
       </TouchableOpacity>
       <View style= {{

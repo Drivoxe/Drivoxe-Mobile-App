@@ -5,6 +5,11 @@ import { getRooms } from '../services/roomservice';
 import { Room } from '../config/types';
 import { useNavigation } from '@react-navigation/native';
 import Colors from '../constants/Colors';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../types';
+
+type Props = NativeStackScreenProps<RootStackParamList, "Login">;
+
 
 const HomeScreen: React.FC = () => {
   const [rooms, setRooms] = useState<Room[]>([]);

@@ -11,6 +11,8 @@ import React from "react";
 import drawernavigator from "./navigation/navigationin";
 import NavigationOut from "./navigation/navigationout";
 import Navigationin from "./navigation/navigationin";
+import { LoginProvider } from "./context/LoginProvider";
+import AuthNavigator from "./navigation/authnavigator";
 
 const App = () => {
   const [loading, setLoading] = useState(true);
@@ -48,14 +50,10 @@ const App = () => {
   }
 
   return (
-    <SafeAreaProvider>
- 
-        
-<Navigationin />
-
-      
-      <StatusBar />
-    </SafeAreaProvider>
+    
+      <LoginProvider>
+      <AuthNavigator />
+  </LoginProvider>
   );
 };
 

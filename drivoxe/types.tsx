@@ -22,6 +22,7 @@ export type RootStackParamList = {
   Home: undefined;
   Details: { room: Room };
   alldeals: undefined;
+  App: undefined;
 
 };
 
