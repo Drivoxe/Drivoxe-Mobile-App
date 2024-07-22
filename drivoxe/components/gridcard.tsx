@@ -10,7 +10,7 @@ interface AuctionCardProps {
   onPress?: () => void;
 }
 
-const AuctionCard: React.FC<AuctionCardProps> = ({ room, onPress }) => {
+const GridCard: React.FC<AuctionCardProps> = ({ room, onPress }) => {
   const imagePath = room?.car?.imagePath?.[0];
   console.log(imagePath);
 const  img=`/Users/mohamedachi/Downloads/${imagePath}`;
@@ -34,8 +34,8 @@ const  img=`/Users/mohamedachi/Downloads/${imagePath}`;
       <View style={styles.searchBar}>
           <Text style={styles.pricetextblack}>Prix de départ </Text>
           <Text style={styles.price}> {room.car.startingPrice} DT</Text>
-        </View>   
-           <TouchableOpacity style={styles.button} onPress={onPress}>
+        </View>
+      <TouchableOpacity style={styles.button} onPress={onPress}>
         <Text style={styles.buttonText}>Participez à {room.car.participationFees} DT</Text>
       </TouchableOpacity>
     </View>
@@ -44,12 +44,12 @@ const  img=`/Users/mohamedachi/Downloads/${imagePath}`;
 
 const styles = StyleSheet.create({
   card: {
-    height: 380,
-    width: 204.32,
+    height: 300.32,
+    width: 172,
     backgroundColor: '#E6E6E6',
     borderRadius: 10,
     padding: 8,
-    shadowColor: '#000',
+    shadowColor: 'red',
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 10,
@@ -57,10 +57,12 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginHorizontal: 10,
     marginVertical: 10,
+    marginBottom: 10,
+
   },
   imageContainer: {
-    width: 187.54,
-    height: 150.32,
+    width: 158.54,
+    height: 126.32,
     backgroundColor: '#f0f0f0',
     borderRadius: 10,
     marginBottom: 16,
@@ -68,18 +70,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   image: {
-    width: 187.54,
-    height: 150.32,
+    width: 158.54,
+    height: 126.32,
     borderRadius: 10,
     resizeMode: 'cover',
   },
   title: {
-    fontSize: 20,
+    fontSize: 10,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   date: {
-    fontSize: 14,
+    fontSize: 10,
     color: '#666',
     marginBottom: 16,
   },
@@ -96,13 +98,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#747474',
   },
   price: {
-    fontSize: 15,
+    fontSize: 10,
     fontWeight: 'bold',
     color: '#ff0000',
     marginBottom: 16,
   },
   pricetextblack: {
-    fontSize: 15,
+    fontSize: 10,
     fontWeight: 'bold',
     color: '#000',
     marginBottom: 16,
@@ -114,7 +116,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 10,
     fontWeight: 'bold',
     textAlign: 'center',
   },
@@ -126,4 +128,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AuctionCard;
+export default GridCard;

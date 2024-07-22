@@ -8,6 +8,7 @@ export interface Car {
     energy: string;
     fiscal_power: string;
     power_ch_in: string;
+    category: string;
     transmission: string;
     color: string;
     description: string;

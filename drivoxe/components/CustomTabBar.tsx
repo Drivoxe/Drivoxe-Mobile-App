@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, Animated } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, Animated, Image } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import Colors from '../constants/Colors';
+import Font from '../constants/Font';
 
 const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+
+  const routeIcons: { [key: string]: any } = {
+    Home: require('../assets/home.png'),
+    Search: require('../assets/search.png'),
+    Notifications: require('../assets/notification.png'),
+    Profile: require('../assets/profile.png'),
+    // Add more routes and icons as needed
+  };
 
   const handlePress = (routeName: string, index: number) => {
     const isFocused = state.index === index;
@@ -14,30 +21,36 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
       navigation.navigate(routeName);
     }
 
-    setExpandedIndex(expandedIndex === index ? null : index);
+    if (expandedIndex !== index) {
+      setExpandedIndex(index);
+    }
   };
 
   return (
     <View style={styles.container}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
-        const label: string = options.tabBarLabel as string || options.title as string || route.name;
+        const label: string = (options.tabBarLabel as string) || (options.title as string) || route.name;
         const icon = options.tabBarIcon ? options.tabBarIcon({
           focused: state.index === index,
           color: '#000',
-          size: 24
+          size: 24,
         }) : null;
+
+        const Icon = routeIcons[route.name];
 
         return (
           <TouchableOpacity
             key={route.key}
             onPress={() => handlePress(route.name, index)}
-            style={styles.tab}
+            style={[
+              styles.tab,
+              expandedIndex === index ? styles.selectedTab : null,
+            ]}
           >
-            <Ionicons name="home" size={24} />
+            {Icon && <Image source={Icon} style={styles.tabIcon} />}
             {expandedIndex === index && (
               <Animated.View style={styles.tabName}>
-                
                 <Text style={styles.buttonText}>{label}</Text>
               </Animated.View>
             )}
@@ -51,10 +64,11 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     height: 60,
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
     backgroundColor: '#fff',
+    // Add more styles as needed
   },
   tab: {
     flex: 1,
@@ -62,23 +76,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'row',
   },
-  tabName: {
-    marginLeft: 10,
+  selectedTab: {
+    backgroundColor: '#ff0000',
+    borderRadius: 5,
   },
-  button: {
-    backgroundColor: Colors.primary,
-    borderRadius: 4,
-    paddingVertical: 12,
-    alignItems: 'center',
+  tabIcon: {
+    width: 24,
+    height: 24,
+  },
+  tabName: {
+    // Add styles for the expanded tab name view
   },
   buttonText: {
-    color: Colors.primary,
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#fff',
+    fontSize: 10,
+    fontFamily: Font["poppins-bold"],
+
+    // Add styles for the button text
   },
 });
-  
-
-  
 
 export default CustomTabBar;

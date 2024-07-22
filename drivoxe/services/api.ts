@@ -75,6 +75,7 @@ export const resetpassword = async ( email: string) => {
     throw new Error(errorMessage);
   }
 };
+
 console.log(Error);
 export default { login, logout, getToken };
 

@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { getRooms } from '../services/roomservice';
 import { Room } from '../config/types';
 import { useNavigation } from '@react-navigation/native';
-import AuctionCard from '../components/Card';
+import GridCard from '../components/gridcard';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Alldeals = () => {
   const navigation = useNavigation();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [selectedFilter, setSelectedFilter] = useState('All');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRooms = async () => {
@@ -17,6 +19,10 @@ const Alldeals = () => {
         setRooms(data);
       } catch (error) {
         console.error(error);
+      } finally {
+        setTimeout(() => {
+          setLoading(false);
+        }, 2000); // Add delay to simulate loading
       }
     };
 
@@ -27,21 +33,29 @@ const Alldeals = () => {
     navigation.navigate('Details', { room });
   };
 
-  const renderDeal = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.card} onPress={() => handlePress(item)}>
-      <Text style={styles.cardTitle}>{item.name}</Text>
-      <Text style={styles.cardDate}>Encher le {item.date}</Text>
-      <Text style={styles.cardPrice}>Prix de départ {item.price}</Text>
-      <TouchableOpacity style={styles.participateButton}>
-        <Text style={styles.participateText}>Participez à 20 DT</Text>
-      </TouchableOpacity>
-    </TouchableOpacity>
-  );
+  const getFilteredRooms = () => {
+    if (selectedFilter === 'All') {
+      return rooms;
+    }
+    return rooms.filter(room => room.car.category === selectedFilter);
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="red" />
+      </View>
+    );
+  }
+
+  const filteredRooms = getFilteredRooms();
 
   return (
+<SafeAreaView style={styles.container}>
     <View style={styles.container}>
-      <View style={styles.filters}>
-        {['All', 'Luxe', 'Popular', 'Commercial'].map((filter) => (
+      <View>
+      <ScrollView horizontal style={styles.filtersContainer} contentContainerStyle={styles.filtersContent}>
+        {['All', 'CITADINE', 'SUV', 'COMPACTE', 'BERLINE', 'COUPÉ', 'UTILITAIRE', 'MONOSPACE', 'PICK UP', 'CABRIOLET'].map((filter) => (
           <TouchableOpacity
             key={filter}
             onPress={() => setSelectedFilter(filter)}
@@ -60,55 +74,77 @@ const Alldeals = () => {
             </Text>
           </TouchableOpacity>
         ))}
+      </ScrollView>
       </View>
 
-      <FlatList
-        data={rooms}
-        renderItem={({ item }) => (
-          <AuctionCard room={item} onPress={() => handlePress(item)} />
-        )}
-        keyExtractor={(item) => item.id.toString()}
-        numColumns={2} // Number of columns in the grid
-        contentContainerStyle={styles.grid}
-      />
+      {filteredRooms.length === 0 ? (
+        <View style={styles.noRoomsContainer}>
+          <Text style={styles.noRoomsText}>No rooms available</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredRooms}
+          renderItem={({ item }) => (
+            <GridCard room={item} onPress={() => handlePress(item)} />
+          )}
+          keyExtractor={(item) => item.id.toString()}
+          numColumns={2}
+          contentContainerStyle={styles.grid}
+        />
+      )}
     </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    alignItems: 'center',
   },
-  filters: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
+  container: {
+    flex: 0,
+    backgroundColor: '#FFF',
+    
+    paddingLeft: 0,
+  },
+  safecontainer: {
+    flex: 1,
+ 
+  },
+  filtersContainer: {
     borderBottomColor: '#ddd',
   },
+  filtersContent: {
+    flexDirection: 'row',
+    paddingVertical: 4,
+  },
   filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginHorizontal: 4,
   },
   selectedFilterButton: {
     borderBottomWidth: 2,
     borderBottomColor: 'red',
   },
   filterText: {
-    fontSize: 16,
+    fontSize: 14,
     color: 'black',
   },
   selectedFilterText: {
     color: 'red',
   },
   grid: {
-    padding: 8,
+    paddingRight: 0,
+    backgroundColor: '#FFF',
+
   },
   card: {
     flex: 1,
-    width : 172.52,
-    height: 250.76,
+    margin: 8,
+    padding: 16,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
@@ -137,6 +173,20 @@ const styles = StyleSheet.create({
   participateText: {
     color: '#fff',
     fontSize: 14,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noRoomsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noRoomsText: {
+    fontSize: 18,
+    color: 'gray',
   },
 });
 

@@ -1,7 +1,6 @@
 import { DrawerContentComponentProps, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import * as React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useLogin } from '../context/LoginProvider';
 
 const CustomDrawer: React.FC<DrawerContentComponentProps> = (props) => {
   const { setIsLoggedIn, profile } = useLogin();
@@ -44,3 +43,7 @@ const CustomDrawer: React.FC<DrawerContentComponentProps> = (props) => {
 };
 
 export default CustomDrawer;
+function useLogin(): { setIsLoggedIn: any; profile: any; } {
+  throw new Error('Function not implemented.');
+}
+
