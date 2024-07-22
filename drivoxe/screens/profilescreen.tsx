@@ -5,6 +5,7 @@ import React, { useContext } from 'react';
 import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { Button } from 'react-native-elements/dist/buttons/Button';
 import { AuthContext } from '../context/LoginProvider';
+import Font from '../constants/Font';
 
 const OtherScreen = () => {
   const authContext = useContext(AuthContext);
@@ -38,6 +39,8 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 18,
+    fontFamily: Font["poppins-regular"],
+
   },
 });
 

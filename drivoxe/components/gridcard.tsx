@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E6E6E6',
     borderRadius: 10,
     padding: 8,
-    shadowColor: 'red',
+    shadowColor: 'black',
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 10,

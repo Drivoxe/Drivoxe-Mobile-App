@@ -88,6 +88,7 @@ import { login, resetpassword } from "../services/api";
       fontWeight: 'bold',
       marginTop: Spacing * 2,
       marginBottom: Spacing,
+      fontFamily: Font["poppins-regular"],
     },
     subtitle: {
       fontSize: 16,
@@ -131,6 +132,8 @@ import { login, resetpassword } from "../services/api";
       color: '#fff',
       fontSize: 16,
       fontWeight: 'bold',
+      fontFamily: Font["poppins-bold"],
+
     },
     termsContainer: {
       flexDirection: 'row',

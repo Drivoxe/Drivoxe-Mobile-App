@@ -5,6 +5,7 @@ import { Room } from '../config/types';
 import { useNavigation } from '@react-navigation/native';
 import GridCard from '../components/gridcard';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Font from '../constants/Font';
 
 const Alldeals = () => {
   const navigation = useNavigation();
@@ -132,13 +133,18 @@ const styles = StyleSheet.create({
   filterText: {
     fontSize: 14,
     color: 'black',
+    fontFamily: Font["poppins-regular"],
+
   },
   selectedFilterText: {
     color: 'red',
+    fontFamily: Font["poppins-regular"],
+
   },
   grid: {
     paddingRight: 0,
     backgroundColor: '#FFF',
+
 
   },
   card: {
@@ -153,15 +159,21 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: 'bold',
+    fontFamily: Font["poppins-bold"],
+
   },
   cardDate: {
     fontSize: 14,
     color: '#666',
     marginVertical: 8,
+    fontFamily: Font["poppins-regular"],
+
   },
   cardPrice: {
     fontSize: 16,
     color: 'red',
+    fontFamily: Font["poppins-regular"],
+
   },
   participateButton: {
     marginTop: 16,
@@ -173,6 +185,8 @@ const styles = StyleSheet.create({
   participateText: {
     color: '#fff',
     fontSize: 14,
+    fontFamily: Font["poppins-regular"],
+
   },
   loadingContainer: {
     flex: 1,
@@ -187,6 +201,7 @@ const styles = StyleSheet.create({
   noRoomsText: {
     fontSize: 18,
     color: 'gray',
+    fontFamily: Font["poppins-regular"],
   },
 });
 

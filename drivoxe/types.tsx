@@ -24,6 +24,7 @@ export type RootStackParamList = {
   deals: undefined;
   App: undefined;
   New: undefined;
+  bid: { room: Room };
 
 };
 

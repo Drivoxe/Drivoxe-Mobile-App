@@ -15,10 +15,10 @@ import alldeals from '../screens/alldealsscreen';
 import Alldeals from '../screens/alldealsscreen';
 import Searchscreen from '../screens/Searchscreen';
 import Notificationscreen from '../screens/Notificationscreen';
-import Testscreen from '../screens/testscreen';
 import { Room } from '../config/types';
 import SearchScreen from '../screens/Searchscreen';
 import { TabView } from 'react-native-elements';
+import Bidscreen from '../screens/bidscreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator<RootStackParamList>();
@@ -29,6 +29,7 @@ const HomeStack = () => (
     headerShown: false,}}  >
     <Stack.Screen name="Home" component={HomeScreen} />
     <Stack.Screen name="Details" component={DetailsScreen} />
+    <Stack.Screen name="bid" component={Bidscreen} />
     <Stack.Screen name="deals" component={Alldeals} />
   </Stack.Navigator>
 );

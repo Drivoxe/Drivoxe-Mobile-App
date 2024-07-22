@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Room } from '../config/types'; // Adjust the path as needed
+import Font from '../constants/Font';
 
 const localImage = require('../assets/Peugeot_308.png');
 
@@ -75,6 +76,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
+    fontFamily: Font["poppins-bold"],
     fontWeight: 'bold',
     marginBottom: 8,
   },
@@ -82,6 +84,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginBottom: 16,
+    fontFamily: Font["poppins-regular"],
+
   },
   progressBar: {
     height: 10,
@@ -100,12 +104,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#ff0000',
     marginBottom: 16,
+    fontFamily: Font["poppins-bold"],
   },
   pricetextblack: {
     fontSize: 15,
     fontWeight: 'bold',
     color: '#000',
     marginBottom: 16,
+    fontFamily: Font["poppins-bold"],
+
   },
   button: {
     backgroundColor: '#ff0000',
@@ -117,6 +124,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+    fontFamily: Font["poppins-bold"],
+
   },
   searchBar: {
     flexDirection: 'row',

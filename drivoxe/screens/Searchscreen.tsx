@@ -5,6 +5,7 @@ import { Car, Room } from '../config/types';
 import { fetchFilterOptions, getRooms } from '../services/roomservice';
 import Colors from '../constants/Colors';
 import { CheckBox } from 'react-native-elements';
+import Font from '../constants/Font';
 
 interface SearchScreenProps {
   onFilter: (filteredRooms: Room[]) => void;
@@ -193,11 +194,15 @@ const styles = StyleSheet.create({
   searchTitle: {
     fontSize: 24,
     fontWeight: 'bold',
+    fontFamily: Font["poppins-bold"],
+
   },
   searchSubtitle: {
     fontSize: 14,
     color: '#777',
     marginBottom: 10,
+    fontFamily: Font["poppins-regular"],
+
   },
   searchBar: {
     flexDirection: 'row',
@@ -230,20 +235,27 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    fontFamily: Font["poppins-bold"],
+
   },
   cardDate: {
     fontSize: 14,
     color: '#777',
+    fontFamily: Font["poppins-regular"],
+
   },
   Text: {
     fontSize: 16,
     color: '#000000',
     marginBottom: 10,
+    fontFamily: Font["poppins-regular"],
   },
   cardPrice: {
     fontSize: 16,
     color: '#e74c3c',
     marginBottom: 10,
+    fontFamily: Font["poppins-regular"],
+
   },
   cardButton: {
     backgroundColor: Colors.primary,
@@ -254,6 +266,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     textAlign: 'center',
+    fontFamily: Font["poppins-bold"],
+
   },
   modalContainer: {
     padding: 10,

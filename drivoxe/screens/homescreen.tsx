@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import Colors from '../constants/Colors';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
+import Font from '../constants/Font';
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -137,12 +138,16 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: Colors.primary,
+    fontFamily: Font["poppins-bold"],
+
   },
   subheading: {
     fontSize: 18,
     color: 'gray',
     fontWeight: 'bold',
     paddingLeft: 5,
+    fontFamily: Font["poppins-semiBold"],
+
   },
   currentAuction: {
     backgroundColor: Colors.primary,
@@ -164,11 +169,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: Colors.onPrimary,
+    fontFamily: Font["poppins-bold"],
+
   },
   auctionStatus: {
     fontSize: 14,
     color: Colors.onPrimary,
     marginBottom:10,
+    fontFamily: Font["poppins-regular"],
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -179,11 +187,16 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.primary,  },
+    color: Colors.primary, 
+    fontFamily: Font["poppins-bold"],
+ 
+  },
   viewAll: {
     color: Colors.primary,
     fontSize: 16,
     fontWeight: 'bold',
+    fontFamily: Font["poppins-bold"],
+
   },
   horizontalScroll: {
     marginVertical: 10,
@@ -208,6 +221,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+    fontFamily: Font["poppins-bold"],
+
   },
 
 });

@@ -209,6 +209,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+    fontFamily: Font["poppins-bold"],
+
   },
   termsContainer: {
     flexDirection: 'row',
@@ -218,6 +220,7 @@ const styles = StyleSheet.create({
   termsText: {
     marginLeft: Spacing,
     color: 'gray',
+    fontFamily: Font["poppins-regular"],
   },
   termsLink: {
     color: '#FF3D00',
@@ -231,5 +234,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: FontSize.small,
     fontWeight: 'bold',
+    fontFamily: Font["poppins-bold"],
+
   },
 });

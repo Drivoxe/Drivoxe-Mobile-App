@@ -193,6 +193,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+    fontFamily: Font["poppins-bold"],
+
   },
   disabledButton: {
     backgroundColor: Colors.gray,
@@ -205,6 +207,8 @@ const styles = StyleSheet.create({
   termsText: {
     marginLeft: Spacing,
     color: 'gray',
+    fontFamily: Font["poppins-regular"],
+
   },
   termsLink: {
     color: '#FF3D00',
