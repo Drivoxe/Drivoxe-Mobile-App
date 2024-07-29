@@ -2,20 +2,22 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, RefreshControl, SafeAreaView } from 'react-native';
 import AuctionCard from '../components/Card';
 import { getRooms } from '../services/roomservice';
-import { Room } from '../config/types';
+import { Room , User } from '../config/types';
 import { useNavigation } from '@react-navigation/native';
 import Colors from '../constants/Colors';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import Font from '../constants/Font';
-
+import { getUserData } from '../services/api';
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
+
 
 
 const HomeScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [User, setUser] = useState<User>();
   const navigation = useNavigation();
   const fetchRooms = async () => {
     try {
@@ -25,6 +27,15 @@ const HomeScreen: React.FC = () => {
       console.error(error);
     }
   }
+  const fetchUserData = async () => {
+    const user = await getUserData();
+    if (user) {
+        console.log('User data:', user);
+        setUser(user);
+    } else {
+        console.log('No user data found');
+    }
+};
   const onRefresh = useCallback(() => {
     setRefreshing(true);
 
@@ -43,7 +54,7 @@ const HomeScreen: React.FC = () => {
         console.error(error);
       }
     };
-
+    fetchUserData();
     fetchRooms();
   }, []);
 
@@ -65,7 +76,7 @@ const HomeScreen: React.FC = () => {
       <View style={styles.horizontal}>
       <Image source={{ uri: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png' }} style={styles.profile} />
 
-        <Text style={styles.greeting}>Hello, Ujang</Text>
+        <Text style={styles.greeting}>Hello, {User?.name} {User?.lastname}</Text>
         </View >
         <Text style={styles.subheading}>Let's Start The Auction!</Text>
       </View>

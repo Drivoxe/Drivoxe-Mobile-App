@@ -1,10 +1,8 @@
-// src/utils/jwtUtils.ts
 import { JwtPayload } from 'jwt-decode';
 import JWT from 'expo-jwt';
+import { User } from '../config/types'; // Adjust the path to where your User interface is located
 
-interface DecodedToken extends JwtPayload {
-    [key: string]: any;
-}
+interface DecodedToken extends JwtPayload, Partial<User> {}
 
 export const decodeToken = (token: string, key: string): DecodedToken => {
     return JWT.decode(token, key);
