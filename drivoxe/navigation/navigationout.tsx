@@ -51,11 +51,9 @@ function RootNavigator() {
               <Stack.Screen name="Stepper" component={Stepper} options={{ headerShown: false }} />
       <Stack.Screen name="Welcome" component={Welcome} />
       <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Forget" component={Forgetscreen} />
       <Stack.Screen name="Profile" component={ProfileScreen} />
-      <Stack.Screen name="Home" component={HomeScreen} />
-
     </Stack.Navigator>
   );
 }

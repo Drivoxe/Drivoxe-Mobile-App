@@ -4,26 +4,40 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import Font from '../constants/Font';
 
 const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  // Set the initial state to 0 to ensure the first tab (Home) is selected by default
+  const [expandedIndex, setExpandedIndex] = useState<number>(0);
 
   const routeIcons: { [key: string]: any } = {
-    Home: require('../assets/home.png'),
-    Search: require('../assets/search.png'),
-    Notifications: require('../assets/notification.png'),
-    Profile: require('../assets/profile.png'),
-    // Add more routes and icons as needed
+    Home: {
+      inactive: require('../assets/home.png'),
+      active: require('../assets/homeout.png'),
+    },
+    Search: {
+      inactive: require('../assets/search.png'),
+      active: require('../assets/searchout.png'),
+    },
+    Notifications: {
+      inactive: require('../assets/notification.png'),
+      active: require('../assets/notificationout.png'),
+    },
+    Profile: {
+      inactive: require('../assets/profile.png'),
+      active: require('../assets/profileout.png'),
+    },
   };
 
   const handlePress = (routeName: string, index: number) => {
     const isFocused = state.index === index;
 
+    // Navigate to the route if it's not already focused
     if (!isFocused) {
       navigation.navigate(routeName);
     }
 
+    // Toggle the expanded index or reset it
     if (expandedIndex !== index) {
       setExpandedIndex(index);
-    }
+    } 
   };
 
   return (
@@ -31,13 +45,13 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const label: string = (options.tabBarLabel as string) || (options.title as string) || route.name;
-        const icon = options.tabBarIcon ? options.tabBarIcon({
-          focused: state.index === index,
-          color: '#000',
-          size: 24,
-        }) : null;
+        const isFocused = state.index === index;
 
-        const Icon = routeIcons[route.name];
+        // Determine the icon to use based on the focus state and expanded index
+        const Icon =
+          expandedIndex === index || isFocused
+            ? routeIcons[route.name].active
+            : routeIcons[route.name].inactive;
 
         return (
           <TouchableOpacity
@@ -68,7 +82,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 60,
     backgroundColor: '#fff',
-    // Add more styles as needed
+    padding: '5%',
   },
   tab: {
     flex: 1,
@@ -79,10 +93,12 @@ const styles = StyleSheet.create({
   selectedTab: {
     backgroundColor: '#ff0000',
     borderRadius: 5,
+    padding: 5,
   },
   tabIcon: {
     width: 24,
     height: 24,
+    marginBottom: 5,
   },
   tabName: {
     // Add styles for the expanded tab name view
@@ -91,8 +107,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 10,
     fontFamily: Font["poppins-bold"],
-
-    // Add styles for the button text
+    marginHorizontal: 5,
   },
 });
 

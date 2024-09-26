@@ -24,9 +24,10 @@ export interface Auction {
   startingPrice: number;
   currentPrice: number;
   endTime?: Date; // Use optional chaining if endTime can be nullable
-  auctionStatus: 'not_opened_yet' | 'ongoing' | 'closed';
+  auctionStatus?: 'not_opened_yet' | 'ongoing' | 'closed';
   createdAt: Date;
   updatedAt: Date;
+
 }
 
 export interface Room {
@@ -34,7 +35,8 @@ export interface Room {
   name: string;
   car: Car;
   startDate: string; // Use string if date is returned as a string
-  auction: Auction; // Add the auction property
+  auction?: Auction; // Add the auction property
+  subscribers: User[];
 }
 
 
@@ -62,7 +64,7 @@ export interface User {
 
   resetTokenExpires?: Date;
 
-  rooms?: Room[];
+  rooms: Room[];
 
   bids?: Bid[];
 
@@ -93,6 +95,47 @@ export interface Bid {
 
   bidAmount: number;
 
+}
+export  interface PaymentDto {
+  userId: number;
+  roomId: number;
+  amount: number;
+  note: string;
+  returnUrl: string;
+  cancelUrl: string;
+  orderId: string;
+}
+
+export  interface RefundDto {
+  userId: number;
+  amount: number;
+  order: string;
+}
+export interface UserRoom {
+  userId: number;
+  roomId: number;
+}
+
+
+export interface WebhookDto {
+  email: string;
+  note: string;
+  transaction_id: string;
+  room: {
+    startDate: string;
+  };
+  amount: number;
+}
+export interface CreateRoomDto {
+  name: string;
+  carId: number;
+  startDate: Date;
+}
+
+export interface UpdateRoomDto {
+  name?: string;
+  carId?: number;
+  startDate?: Date;
 }
 
 

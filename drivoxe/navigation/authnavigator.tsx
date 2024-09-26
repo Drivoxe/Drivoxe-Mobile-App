@@ -36,7 +36,7 @@ const AuthNavigator = () => {
                 {authContext?.isAuthenticated ? (
                     <Stack.Screen name="App" component={AppTabs} options={{ headerShown: false }} />
                 ) : (
-                    <><Stack.Screen name="Stepper" component={Stepper} options={{ headerShown: false }} /><Stack.Screen name="Welcome" component={Welcome} options={{ headerShown: false }} /><Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} /><Stack.Screen name="Register" component={RegisterScreen} /><Stack.Screen name="Forget" component={Forgetscreen} options={{ headerShown: false }} /><Stack.Screen name="Profile" component={ProfileScreen} /><Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} /></>
+                    <><Stack.Screen name="Stepper" component={Stepper} options={{ headerShown: false }} /><Stack.Screen name="Welcome" component={Welcome} options={{ headerShown: false }} /><Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} /><Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} /><Stack.Screen name="Forget" component={Forgetscreen} options={{ headerShown: false }} /><Stack.Screen name="Profile" component={ProfileScreen} /><Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} /></>
               
                 )}
             </Stack.Navigator>

@@ -18,7 +18,7 @@ import {
   import { RootStackParamList } from "../types";
   import AppTextInput from "../components/AppTextInput";
   import { CheckBox, colors } from "react-native-elements";
-import { login, resetpassword } from "../services/api";
+import { login, resetPassword } from "../services/api";
   
   type Props = NativeStackScreenProps<RootStackParamList, "Forget">;
   
@@ -30,7 +30,7 @@ import { login, resetpassword } from "../services/api";
   
     const handlereset = async () => {
       try {
-        const data = await resetpassword(email);
+        const data = await resetPassword(email);
         Alert.alert('REQUEST Successful', `check your email Access Token: ${data.name}`);
         navigate("Login");
       } catch (error) {

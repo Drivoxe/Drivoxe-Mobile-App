@@ -20,12 +20,14 @@ export type RootStackParamList = {
   Forget: undefined;
   Profile: undefined;
   Home: undefined;
+  Homestack: undefined;
+
   Details: { room: Room };
   deals: undefined;
   App: undefined;
   New: undefined;
   bid: { room: Room };
-
+  WebViewScreen: { url: string };
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =

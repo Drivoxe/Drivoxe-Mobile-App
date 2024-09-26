@@ -1,6 +1,6 @@
 // services/roomService.ts
 import axios from 'axios';
-import { Car , Room} from '../config/types';
+import { Car , CreateRoomDto, Room, UpdateRoomDto} from '../config/types';
 
 const API_URL = 'http://localhost:4000';
 const API_UR = 'https://auction-backend-o2l7.onrender.com';
@@ -81,3 +81,6 @@ export const getRoomById = async (id: number) => {
     throw new Error('Error fetching room: '  );
   }
 };
+
+
+

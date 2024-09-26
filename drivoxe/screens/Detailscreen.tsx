@@ -4,19 +4,23 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   SafeAreaView,
   TouchableOpacity,
   RefreshControl,
+  Alert,
+  Modal,
+  ActivityIndicator
 } from 'react-native';
 import { RouteProp, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { Room } from '../config/types';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { getLastBidUpdatedAt } from '../services/auctionservice';
+import { Room, User } from '../config/types';
+import Slider from 'react-native-hook-image-slider';
+import axiosInstance from '../components/axiosinstance';
 import { RootStackParamList } from '../types';
-const localImage = require('../assets/Peugeot_308.png');
-
+import RoomsService from '../services/roomcheck';
+import { getUserData } from '../services/api';
+import WebView from 'react-native-webview';
+import axios from 'axios';
 
 type DetailsScreenRouteProp = RouteProp<RootStackParamList, 'Details'>;
 type DetailsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Details'>;
@@ -26,116 +30,198 @@ type Props = {
   navigation: DetailsScreenNavigationProp;
 };
 
+const backendUrl = "http://localhost:4000";
+
 const DetailsScreen: React.FC<Props> = ({ route, navigation }) => {
   const { room } = route.params;
-  const imagePath = room?.car?.imagePath?.[0];
   const [lastBidAmount, setLastBidAmount] = useState<number | null>(null);
   const [lastBidUpdatedAt, setLastBidUpdatedAt] = useState<string>('');
   const [refreshing, setRefreshing] = useState(false);
   const isAuctionClosed = room.auction?.auctionStatus === 'closed';
+  const [bidUpdate, setBidUpdate] = useState<{ newBid: number; userName: string } | null>(null);
+  const [remainingTime, setRemainingTime] = useState<number>(0);
+  const [participationFees, setParticipationFees] = useState<number>(room.car.participationFees || 0);
+  const [user, setUser] = useState<User | null>(null);
+  const [haspaid, sethaspaid] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [url, setUrl] = useState<string>('');
+  const [loading, setLoading] = useState(false);
 
-  const fetchLastBid = async () => {
+  const openLinkInModal = (link: string) => {
+    setUrl(link);
+    setModalVisible(true);
+  };
+  const handleWebViewNavigationStateChange = (navState: { url: any; }) => {
+    const { url } = navState;
+  
+    // If the URL starts with "https://www.drivoxe.com/room-page/roomId"
+    const roomPageUrl = `https://www.drivoxe.com/room-page/${room.id}`;
+
+    if (url.startsWith(roomPageUrl)) {
+      // Ensure 'user' is defined and 'user.id' is a number
+      if (user?.id) {
+        handlecheckpayment(user.id); // Now the id is guaranteed to be a number
+        setModalVisible(false);
+      } else {
+        console.error('User or user ID is undefined');
+      }
+    }
+  };
+  const handlecheckpayment = async (userId: number) => {
     try {
-      const data = await getLastBidUpdatedAt(room.auction.id);
-      const lastBidUpdatedDate = new Date(data.updated_at);
-      setLastBidUpdatedAt(
-        lastBidUpdatedDate.toLocaleDateString('fr-FR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        })
-      );
-      setLastBidAmount(data.bidAmount);
+      const rooms: Room[] = await RoomsService.getRoomsByUserID(userId);
+      const matchedRoom = rooms.find((r: Room) => r.id === room.id);
+      console.log('matched',matchedRoom);
+
+      if (matchedRoom) {
+        
+        if (matchedRoom.subscribers ) {
+          sethaspaid(true);
+        }
+      }
     } catch (error) {
-      console.error('Error fetching last bid update date:', error);
+      console.error('Error fetching rooms:', error);
     }
   };
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    fetchLastBid().finally(() => setRefreshing(false));
-  }, [room.auction.id, isAuctionClosed]);
+  const fetchUserData = async () => {
+    try {
+      const userData = await getUserData();
+      if (userData) {
+        setUser(userData);
+        handlecheckpayment(userData.id);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (isAuctionClosed) {
-      fetchLastBid();
-    }
-  }, [room.auction.id, isAuctionClosed]);
+    fetchUserData();
+    console.log(haspaid);
 
-  const handleParticipateClick = (room: Room)  => {
-    navigation.navigate('bid', { room });
-    // Navigation logic for participation
+  }, []);
+
+  const handleSubmit = async () => {
+    if (!user) {
+      Alert.alert('Erreur', 'Veuillez vous connecter pour procéder au paiement.');
+      return;
+    }
+  
+    const paymeeFee = participationFees * 0.019;
+    const tva = participationFees * 0.19;
+    const totalAmount = participationFees + paymeeFee + tva;
+  
+    try {
+      console.log('User ID:', user?.id);
+      console.log('Room ID:', room.id);
+      console.log('Total Amount:', totalAmount);
+  
+      const response = await axios.post(`${backendUrl}/pay`, {
+        userId: Number(user.id),
+        roomId: Number(room.id),
+        amount: totalAmount,
+        orderId: `room${room.id}`,
+        note: 'subscription',
+      });
+  
+      console.log('Response:', response.data);
+  
+      if (response.data.message === "Success" && response.data.data.payment_url) {
+        const paymentUrl = response.data.data.payment_url;
+        console.log(paymentUrl)
+  
+        // Check if the payment URL is valid
+        if (paymentUrl.startsWith('http')) {
+          // For navigation, use a WebView to open the payment page
+          openLinkInModal(paymentUrl);
+        } else {
+          Alert.alert('Erreur', 'URL de paiement invalide');
+        }
+      } else {
+        Alert.alert('Erreur', 'Une erreur est survenue lors de l\'initiation du paiement');
+      }
+    } catch (error: any) {
+      console.error('Erreur lors de l\'initiation du paiement:', error.response ? error.response.data : error.message);
+      Alert.alert('Erreur', 'Une erreur est survenue lors de l\'initiation du paiement');
+    }
   };
+  const imageUris = room.car.imagePath?.map((path) => `${backendUrl}/uploads/${path}`) || [];
+
+  const handleParticipateClick = (room: Room) => {
+    if (room.auction?.auctionStatus === 'not_opened_yet') {
+      Alert.alert("L'enchère n'est pas encore ouverte");
+      return;
+    }
+    navigation.navigate('bid', { room });
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text>Chargement...</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>{room.name}</Text>
-      <ScrollView
-        contentContainerStyle={styles.scrollViewContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {imagePath ? (
-          <Image source={localImage} style={styles.image} />
-        ) : (
-          <Text>No Image Available</Text>
-        )}
-
-        <Text style={styles.title}>{room.name}</Text>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+      {imageUris.length > 0 ? (
+  <Slider images={imageUris} />
+) : (
+  <Text>No Image Available</Text>
+)}
 
         <Text style={styles.subtitle}>Description</Text>
         <Text style={styles.detail}>Make: {room.car.make}</Text>
-        <Text style={styles.detail}>Car Model: {room.car.model}</Text>
-        <Text style={styles.detail}>Starting Price: {room.car.startingPrice} DT</Text>
-        <Text style={styles.detail}>Market Price: {room.car.marketPrice} DT</Text>
+        <Text style={styles.detail}>Model: {room.car.model}</Text>
         <Text style={styles.detail}>Year: {room.car.year}</Text>
-        <Text style={styles.detail}>Power cheuvaux dine: {room.car.power_ch_in}</Text>
-        <Text style={styles.detail}>Fiscal Power: {room.car.fiscal_power}</Text>
-        <Text style={styles.detail}>Energy: {room.car.energy}</Text>
-        <Text style={styles.detail}>Mileage: {room.car.mileage}</Text>
-        <Text style={styles.detail}>Transmission: {room.car.transmission}</Text>
-        <Text style={styles.detail}>Color: {room.car.color}</Text>
-        <Text style={styles.detail}>Provider: {room.car.provider}</Text>
-        <Text style={styles.detail}>Category: {room.car.category}</Text>
-        <Text style={styles.detail}>{room.car.description}</Text>
       </ScrollView>
 
       <View style={styles.detailsContainer}>
-        <View style={styles.header}>
-          <Text style={styles.status}>
-            {isAuctionClosed ? (
-              <>{lastBidUpdatedAt}</>
-            ) : room.auction?.auctionStatus === 'ongoing' ? (
-              <Text style={styles.ongoingStatus}>En cours</Text>
-            ) : (
-              <>Prévu le {new Date(room.startDate).toLocaleDateString('fr-FR', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                })}</>
-            )}
-          </Text>
-        </View>
-        <View style={styles.footer}>
-          <Text style={styles.priceLabel}>{isAuctionClosed ? 'Vendu à' : 'Prix de départ'}</Text>
-          <Text style={styles.priceValue}>
-            {isAuctionClosed ? (lastBidAmount !== null && lastBidAmount) : room.car.startingPrice} DT
-          </Text>
-        </View>
-        {isAuctionClosed ? (
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.buttonSold}>
-              <Text style={styles.buttonText}>Closed</Text>
+        <Text>Status: {room.auction?.auctionStatus}</Text>
+
+        <View style={styles.buttonContainer}>
+          {haspaid ? ( <TouchableOpacity style={styles.buttonAlreadyPaid} onPress={() => handleParticipateClick(room)}>
+              <Text style={styles.buttonText} >
+                {room.auction?.auctionStatus === 'not_opened_yet' ? 'Auction Not Opened Yet' : 'Proceed to Auction'}
+              </Text>
             </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button} onPress={() => handleParticipateClick(room)}>
-              <Text style={styles.buttonText}>Participez à 100 DT</Text>
+          ) : (
+            
+          <TouchableOpacity
+          style={styles.button}
+          onPress={
+           
+              handleSubmit
+          }
+        >
+          <Text style={styles.buttonText}>participate</Text>
+        </TouchableOpacity>)}
+        </View>
+
+        {/* Modal for WebView */}
+        <Modal
+          visible={modalVisible}
+          animationType="slide"
+          onRequestClose={() => setModalVisible(false)}
+          transparent={false}
+        >
+          <View style={styles.modalContainer}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.closeButtonText}>Close</Text>
             </TouchableOpacity>
+            <WebView source={{ uri: url }} style={styles.webview} onNavigationStateChange={handleWebViewNavigationStateChange} />
           </View>
-        )}
+        </Modal>
       </View>
     </SafeAreaView>
   );
@@ -148,12 +234,6 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     padding: 16,
-  },
-  image: {
-    width: '100%',
-    height: 200,
-    resizeMode: 'cover',
-    marginBottom: 10,
   },
   title: {
     fontSize: 24,
@@ -176,32 +256,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: '#ddd',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  status: {
-    fontSize: 14,
-    color: '#666',
-  },
-  ongoingStatus: {
-    fontSize: 14,
-    color: 'red',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  priceLabel: {
-    fontSize: 16,
-    color: '#333',
-  },
-  priceValue: {
-    fontSize: 16,
-    color: 'red',
-  },
   buttonContainer: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -215,11 +269,11 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     alignItems: 'center',
   },
-  buttonSold: {
+  buttonAlreadyPaid: {
     width: 300,
     height: 65,
     padding: 16,
-    backgroundColor: 'gray',
+    backgroundColor: 'green',
     borderRadius: 50,
     alignItems: 'center',
   },
@@ -228,6 +282,30 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
+  modalContainer: {
+    flex: 1,
+    marginTop: 50,
+  },
+  closeButton: {
+    alignSelf: 'flex-end',
+    margin: 10,
+    padding: 10,
+    backgroundColor: '#024da3',
+    borderRadius: 5,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  webview: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
 
 export default DetailsScreen;
+

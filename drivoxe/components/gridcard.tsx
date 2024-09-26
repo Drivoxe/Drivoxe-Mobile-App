@@ -9,17 +9,17 @@ interface AuctionCardProps {
   room: Room;
   onPress?: () => void;
 }
+const backendUrl = "http://localhost:4000"; // Update this to your backend URL
 
 const GridCard: React.FC<AuctionCardProps> = ({ room, onPress }) => {
-  const imagePath = room?.car?.imagePath?.[0];
-  console.log(imagePath);
-const  img=`/Users/mohamedachi/Downloads/${imagePath}`;
+  const imageUris = room.car.imagePath?.map((path) => `${backendUrl}/uploads/${path}`) || [];
+
   return (
     <View style={styles.card}>
       <View style={styles.imageContainer}>
-        {imagePath ? (
+        {imageUris ? (
           <Image 
-          source= {localImage}
+        source= {{uri: imageUris[0]}}
                     style={styles.image} 
           />
         ) : (
@@ -44,9 +44,9 @@ const  img=`/Users/mohamedachi/Downloads/${imagePath}`;
 
 const styles = StyleSheet.create({
   card: {
-    height: 300.32,
-    width: 172,
-    backgroundColor: '#E6E6E6',
+    height: '100%',
+    width: '45%',
+    backgroundColor: '#F8F8F8',
     borderRadius: 10,
     padding: 8,
     shadowColor: 'black',
@@ -61,8 +61,8 @@ const styles = StyleSheet.create({
 
   },
   imageContainer: {
-    width: 158.54,
-    height: 126.32,
+    width: '100%',
+    height: '50%',
     backgroundColor: '#f0f0f0',
     borderRadius: 10,
     marginBottom: 16,
@@ -70,10 +70,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   image: {
-    width: 158.54,
-    height: 126.32,
+    width: '100%',
+    height: '100%',
     borderRadius: 10,
-    resizeMode: 'cover',
+    resizeMode: 'contain',
   },
   title: {
     fontSize: 10,

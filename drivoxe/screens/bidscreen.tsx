@@ -1,31 +1,49 @@
 import { RouteProp } from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, TextInput, StyleSheet, Modal, ScrollView } from 'react-native';
+import { View, Text, Image, TouchableOpacity, TextInput, StyleSheet, Modal, ScrollView, FlatList, Alert } from 'react-native';
 import { RootStackParamList } from '../types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Colors from '../constants/Colors';
-import { Icon } from 'react-native-elements';
 import Font from '../constants/Font';
-import { getUserData } from '../services/api'; // Update import path if needed
+import { getUserData } from '../services/api';
 import { User } from '../config/types';
+import auctionService from '../services/auctionservice';
+import { io } from 'socket.io-client';
+import axiosInstance from '../components/axiosinstance';
+import Slider from 'react-native-hook-image-slider'; 
+
 type DetailsScreenRouteProp = RouteProp<RootStackParamList, 'bid'>;
 type DetailsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'bid'>;
-const localImage = require('../assets/Peugeot_308.png');
+
 
 type Props = {
   route: DetailsScreenRouteProp;
   navigation: DetailsScreenNavigationProp;
 };
 
+const backendUrl = "http://localhost:4000";
+
+const socket = io(backendUrl, {
+  transports: ['websocket', 'polling'],
+  withCredentials: true,
+});
+
 const Bidscreen: React.FC<Props> = ({ route, navigation }) => {
   const { room } = route.params;
+  const auction = room.auction;
   const imagePath = room?.car?.imagePath?.[0];
   const [selectedValue, setSelectedValue] = useState<number | null>(null);
   const [isModalVisible, setModalVisible] = useState(false);
   const [customValue, setCustomValue] = useState('');
   const [bids, setBids] = useState<number[]>([]);
-  const [totalBid, setTotalBid] = useState<number>(room.car.startingPrice) ;
+  const [totalBid, setTotalBid] = useState<number>(room.auction.currentPrice);
+  const [currentBid, setcurrentBid] = useState<number>(room.auction.currentPrice);
+
   const [user, setUser] = useState<User | null>(null);
+  const [bidUpdate, setBidUpdate] = useState<{ newBid: number; userName: string } | null>(null);
+  const [remainingTime, setRemainingTime] = useState<number>(0);
+  const [auctionClosed, setAuctionClosed] = useState<boolean>(false);
+  const imageUris = room.car.imagePath?.map((path) => `${backendUrl}/uploads/${path}`) || [];
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -36,6 +54,7 @@ const Bidscreen: React.FC<Props> = ({ route, navigation }) => {
     fetchUserData();
   }, []);
 
+  
   const handleValueSelect = (value: number) => {
     setSelectedValue(value);
   };
@@ -50,29 +69,146 @@ const Bidscreen: React.FC<Props> = ({ route, navigation }) => {
     }
   };
 
-  const placeBid = () => {
-    if (selectedValue !== null) {
-      setTotalBid((prevTotalBid) => {
-        const newTotalBid = prevTotalBid + selectedValue;
-        setBids((prevBids) => [newTotalBid, ...prevBids]);
-        return newTotalBid;
-      });
+  useEffect(() => {
+    const fetchLastBidder = async () => {
+      try {
+        const response = await axiosInstance.get(`${backendUrl}/auctions/${auction.id}/last_bidder`);
+        const { bidAmount, bidder } = response.data;
+        const userName = bidder ? bidder.name : 'No bidder';
+        const newBid = bidAmount || 0;
+        setBidUpdate({ newBid, userName });
+      } catch (error) {
+        console.error('Error fetching last bidder:', error);
+      }
+    };
+
+    fetchLastBidder();
+
+    socket.on('bidUpdate', (data: { newBid: number; userName: string }) => {
+      setBidUpdate(data);
+      setTotalBid((prevTotalBid) => prevTotalBid + data.newBid);
+      setBids((prevBids) => [data.newBid, ...prevBids]);
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+    });
+
+  
+
+    return () => {
+      socket.off('bidUpdate');
+      socket.off('connect_error');
+     
+
+    };
+  
+
+  
+  }, []);
+  useEffect(() => {
+    socket.on('countdown', (data: { auctionId: number; remaining: number }) => {
+      if (auction && data.auctionId === auction.id) {
+        setRemainingTime(data.remaining);
+  
+        if (data.remaining <= 0) {
+          setAuctionClosed(true);
+        }
+      }
+    });
+  
+    return () => {
+      socket.off('countdown');
+    };
+  }, [auction]);
+  
+  const formatTime = (totalSeconds: number): string => {
+    if (totalSeconds < 0) {
+      return '00:00:00'; // Return 0 when the auction is closed
+    }
+  
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+  
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
+  
+
+  const placeBidonline = async () => {
+    if (selectedValue !== null && user) {
+      const bidAmount = currentBid + selectedValue;
+      Alert.alert(
+        "Confirm Bid",
+        `Are you sure you want to place a bid of ${bidAmount} DT?`,
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Confirm",
+            onPress: async () => {
+              try {
+                const bidData = {
+                  userId: user.id,
+                  bidAmount: bidAmount,
+                };
+  
+                const auctionId = room.auction.id;
+  
+                console.log('Placing bid with data:', { auctionId, bidData });
+  
+                // Only proceed with the payment and placing the bid if confirmed
+                await auctionService.placeBid(auctionId, bidData.bidAmount, bidData.userId);
+  
+                setcurrentBid(bidData.bidAmount);
+              } catch (error) {
+                console.error('Error placing bid:', error);
+                alert('Error placing bid');
+              }
+            },
+          },
+        ]
+      );
     } else {
       alert('Please select a value before placing a bid');
     }
   };
+  
 
   return (
     <View style={styles.container}>
-      {imagePath ? (
-        <Image source={localImage} style={styles.image} />
-      ) : (
-        <Text>No Image Available</Text>
-      )}
+         {imageUris.length > 0 ? (
+          <Slider images={imageUris} />
+        ) : (
+          <Text>No Image Available</Text>
+        )}
+
       <View style={styles.blackcontainer}>
         <Text style={styles.title}>{room.car.make} {room.car.model}</Text>
       </View>
+      <View style={styles.containerBOX}>
+      <View style={styles.priceContainer}>
+        <View style={styles.section}>
+          <Text style={styles.label}> Starting price</Text>
+          <Text style={styles.price}> {room.auction.startingPrice} DT</Text>
+        </View>
+        <View style={styles.section}>
+          <Text style={styles.label}>Current Bid Price</Text>
+          <Text style={styles.price}>{currentBid.toLocaleString()} DT</Text>
+        </View>
+      </View>
 
+      <View style={styles.liveContainer}>
+     
+      </View>
+
+      <View style={styles.timerContainer}>
+        <Text style={styles.timerLabel}>Time remaining</Text>
+        <Text style={styles.timer}>{formatTime(remainingTime)}</Text>
+      </View>
+    </View>
       <View style={styles.whitecontainer}>
         <View style={styles.latestBidsContainer}>
           <View style={styles.latestBids}>
@@ -81,14 +217,15 @@ const Bidscreen: React.FC<Props> = ({ route, navigation }) => {
           </View>
 
           <ScrollView style={styles.latestBidsContainer}>
-            {bids.map((bid, index) => (
-              <View style={styles.BidsContainer} key={`${bid}-${index}`}>
-                <Image source={{ uri: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png' }} style={styles.profile} />
-                <Text style={styles.bidder}>{`${user?.name} ${user?.lastname} :`}</Text>
-                <Text style={styles.latestBid}>{`${bid} DT`}</Text>
-              </View>
-            ))}
-          </ScrollView>
+  {bids.map((bid, index) => (
+    <View style={styles.BidsContainer} key={`${bid}-${index}`}>
+      <Image source={{ uri: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png' }} style={styles.profile} />
+      <Text style={styles.bidder}>{`${user?.name|| 'Unknown Bidder'}:`}</Text>
+      <Text style={styles.latestBid}>{`${bid} DT`}</Text>
+    </View>
+  ))}
+</ScrollView>
+
         </View>
         <View style={styles.bubbleContainer}>
           {[100, 250, 500].map((value) => (
@@ -115,16 +252,17 @@ const Bidscreen: React.FC<Props> = ({ route, navigation }) => {
         </View>
         <TouchableOpacity
           style={styles.button}
-          onPress={placeBid}
+          onPress={placeBidonline}
         >
           <Text style={styles.buttonText}>Place Bid for {selectedValue} DT</Text>
         </TouchableOpacity>
-        <Modal presentationStyle='pageSheet' visible={isModalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}>
+        <Modal  presentationStyle='overFullScreen' visible={isModalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}>
           <ScrollView onScroll={({ nativeEvent }) => {
             if (nativeEvent.contentOffset.y > 0) {
               setModalVisible(false);
             }
           }}>
+            <View style={styles.modalBackground}>
             <View style={styles.modalContent}>
               <Text>Enter Custom Value:</Text>
               <TextInput
@@ -140,6 +278,7 @@ const Bidscreen: React.FC<Props> = ({ route, navigation }) => {
                 <Text>Cancel</Text>
               </TouchableOpacity>
             </View>
+                        </View>
           </ScrollView>
         </Modal>
       </View>
@@ -153,11 +292,23 @@ const styles = StyleSheet.create({
     height: 24,
     marginRight: 10,
   },
+  containerBOX: {
+    marginTop: '1%', 
+
+    backgroundColor: '#F3F2F2',
+    padding: 6,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
+  },
   container: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingTop: 45,
-    backgroundColor: 'blue',
+    paddingTop: '15%',
+    backgroundColor: 'white',
+    marginHorizontal:'1%',
   },
   blackcontainer: {
     width: 'auto',
@@ -179,114 +330,148 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: '33%',
+    height: '31%',
     resizeMode: 'contain',
-    backgroundColor: 'blue',
+    borderRadius: 20,
+    marginBottom: 15,
   },
-  BidsContainer: {
-    flexDirection: 'row',
-  },
-  latestBidsContainer: {
-    width: '100%',
-    height: '60%',
-    marginBottom: 20,
-  },
-  latestBids: {
-    marginBottom: 20,
-    flexDirection: 'row',
-  },
-  latestBidsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  latestBid: {
-    color: '#333',
-    fontSize: 26,
-    paddingVertical: 15,
-    paddingHorizontal: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 5,
-    fontFamily: Font["poppins-bold"],
-  },
-  bidder: {
-    color: '#333',
-    fontSize: 26,
-    paddingVertical: 15,
-    paddingHorizontal: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 5,
-    fontWeight: 'bold',
-    fontFamily: Font["poppins-bold"],
+  title: {
+    fontSize: 24,
+    color: Colors.background,
+    fontFamily: Font['poppins-bold'],
   },
   bubbleContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 20,
+    justifyContent: 'center',
+    marginVertical: '1%',
   },
   bubble: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#e3e3e3',
+    borderRadius: 20,
+    paddingVertical: '2%',
+    paddingHorizontal: '5%',
+    marginHorizontal: '2%',
   },
   selectedBubble: {
     backgroundColor: Colors.primary,
   },
   bubbleText: {
-    color: '#000',
+    fontSize: 16,
+    color: Colors.darkText,
   },
   button: {
     backgroundColor: Colors.primary,
-    paddingVertical: 15,
-    justifyContent: 'center',
+    borderRadius: 10,
+    paddingVertical: '3                             %',
     alignItems: 'center',
-    borderRadius: 5,
+    marginVertical: 5,
   },
   buttonText: {
-    color: '#fff',
     fontSize: 18,
+    color: Colors.background,
   },
-  title: {
-    color: '#fff',
-    fontSize: 26,
-    paddingVertical: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 5,
-    fontWeight: 'bold',
-    fontFamily: Font["poppins-bold"],
+  input: {
+    borderBottomWidth: 1,
+    marginBottom: 20,
   },
   modalContent: {
     backgroundColor: 'white',
-    padding: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 4,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
-  },
-  input: {
-    borderColor: '#ccc',
-    borderWidth: 1,
-    padding: 10,
-    marginVertical: 10,
-    width: '100%',
+    padding: '5%',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: '50%',  // Adjust this to control how much of the screen the modal should cover
   },
   modalButton: {
-    backgroundColor: Colors.primary,
     padding: 10,
-    borderRadius: 5,
-    marginVertical: 5,
+    backgroundColor: Colors.primary,
+    borderRadius: 10,
+    marginVertical: 10,
+    alignItems: 'center',
   },
-  profile:{
-    width: 50, 
-    height: 50,
-    borderRadius: 50,
-  }
+  latestBidsContainer: {
+    flex: 1,
+    marginVertical: 10,
+  },
+  latestBids: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  latestBidsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  BidsContainer: {
+    flexDirection: 'row',
+    marginBottom: 5,
+  },
+  profile: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  bidder: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 10,
+  },
+  latestBid: {
+    fontSize: 16,
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',  // Add semi-transparent background
+  },
+
+  priceContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  section: {
+    flex: 1,
+  },
+  label: {
+    fontSize: 14,
+    color: '#555',
+  },
+  price: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  liveContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 4,
+  },
+  liveText: {
+    fontSize: 14,
+    color: '#555',
+    marginLeft: 8,
+  },
+  timerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  timerLabel: {
+    fontSize: 14,
+    color: '#555',
+  },
+  timer: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#d9534f',
+    marginLeft: 8,
+  },
 });
 
 export default Bidscreen;

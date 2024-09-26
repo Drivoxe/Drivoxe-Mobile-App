@@ -1,24 +1,23 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, RefreshControl, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, RefreshControl, SafeAreaView, ActivityIndicator } from 'react-native';
 import AuctionCard from '../components/Card';
 import { getRooms } from '../services/roomservice';
-import { Room , User } from '../config/types';
+import { Room, User } from '../config/types';
 import { useNavigation } from '@react-navigation/native';
 import Colors from '../constants/Colors';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import Font from '../constants/Font';
 import { getUserData } from '../services/api';
+
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
-
-
 
 const HomeScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
-
   const [rooms, setRooms] = useState<Room[]>([]);
   const [User, setUser] = useState<User>();
   const navigation = useNavigation();
+
   const fetchRooms = async () => {
     try {
       const data = await getRooms();
@@ -26,25 +25,19 @@ const HomeScreen: React.FC = () => {
     } catch (error) {
       console.error(error);
     }
-  }
+  };
+
   const fetchUserData = async () => {
     const user = await getUserData();
     if (user) {
-        console.log('User data:', user);
-        setUser(user);
+      console.log('User data:', user);
+      setUser(user);
     } else {
-        console.log('No user data found');
+      console.log('No user data found');
     }
-};
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
+  };
+const [loading, setLoading] = useState(true);
 
-    // Simulate a network request
-    setTimeout(() => {
-      fetchRooms();
-      setRefreshing(false);
-    }, 2000);
-  }, [rooms]);
   useEffect(() => {
     const fetchRooms = async () => {
       try {
@@ -52,9 +45,26 @@ const HomeScreen: React.FC = () => {
         setRooms(data);
       } catch (error) {
         console.error(error);
+      } finally {
+        
+        setTimeout(() => {
+          setLoading(false);
+        }, 500); // Add delay to simulate loading
       }
     };
     fetchUserData();
+    fetchRooms();
+  }, []);
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+
+    setTimeout(() => {
+      fetchRooms();
+      setRefreshing(false);
+    }, 2000);
+  }, [rooms]);
+
+  useEffect(() => {
     fetchRooms();
   }, []);
 
@@ -67,66 +77,83 @@ const HomeScreen: React.FC = () => {
     navigation.navigate('deals');
   };
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="red" />
+      </View>
+    );
+  }
+
+  // Filter rooms where auction status is 'closed'
+  const closedRooms = rooms.filter(room => room?.auction?.auctionStatus === 'closed');
+
   return (
     <SafeAreaView style={styles.safecontainer}>
-    <ScrollView style={styles.container}   refreshControl={
-      <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-    }>
-      <View style={styles.header}>
-      <View style={styles.horizontal}>
-      <Image source={{ uri: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png' }} style={styles.profile} />
-
-        <Text style={styles.greeting}>Hello, {User?.name} {User?.lastname}</Text>
-        </View >
-        <Text style={styles.subheading}>Let's Start The Auction!</Text>
-      </View>
-      <View style={styles.currentAuction}>
-        <Image source={{ uri: 'https://tse3.mm.bing.net/th?id=OIP.HqVqTgyrAY4AghvNaCYu7wHaJg&pid=Api&P=0&h=180' }} style={styles.image} />
-        <View style={styles.auctionDetails}>
-          <Text style={styles.carModel}>Mercedes C200 AMG</Text>
-          <Text style={styles.auctionStatus}>The auction is almost closed! Don’t miss your chance to bid now!</Text>
-          <TouchableOpacity style={styles.button} >
-        <Text style={styles.buttonText}>Participez à 100 DT</Text>
-      </TouchableOpacity>
+      <ScrollView
+        style={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        <View style={styles.header}>
+          <View style={styles.horizontal}>
+            <Image source={{ uri: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png' }} style={styles.profile} />
+            <Text style={styles.greeting}>Hello, {User?.name} {User?.lastname}</Text>
+          </View>
+          <Text style={styles.subheading}>Let's Start The Auction!</Text>
         </View>
-      </View>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Available Now</Text>
-        <TouchableOpacity onPress={() => handleViewAll('available')}>
-          <Text style={styles.viewAll}>View All</Text>
-        </TouchableOpacity>
-      </View>
-      <ScrollView horizontal style={styles.horizontalScroll}>
-        {rooms.length > 0 ? (
-          rooms.map((room) => (
-            <View key={room.id} >
-              <AuctionCard room={room} onPress={() => handlePress(room)}/>
-            </View>
-          ))
-        ) : (
-          <Text>No rooms available</Text>
-        )}
-      </ScrollView>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Closed Auctions</Text>
-        <TouchableOpacity onPress={() => handleViewAll('closed')}>
-          <Text style={styles.viewAll}>View All</Text>
-        </TouchableOpacity>
-      </View>
-      <ScrollView horizontal style={styles.horizontalScroll}>
-        {rooms.length > 0 ? (
-          rooms.map((room) => (
-            <View key={room.id} >
-              <AuctionCard room={room} onPress={() => handlePress(room)}/>
-            </View>
-          ))
-        ) : (
-          <Text>No rooms available</Text>
-        )}
-      </ScrollView>
-    </ScrollView>
-    </SafeAreaView>
 
+        <View style={styles.currentAuction}>
+          <Image source={{ uri: 'https://tse3.mm.bing.net/th?id=OIP.HqVqTgyrAY4AghvNaCYu7wHaJg&pid=Api&P=0&h=180' }} style={styles.image} />
+          <View style={styles.auctionDetails}>
+            <Text style={styles.carModel}>Mercedes C200 AMG</Text>
+            <Text style={styles.auctionStatus}>The auction is almost closed! Don’t miss your chance to bid now!</Text>
+            <TouchableOpacity style={styles.button}>
+              <Text style={styles.buttonText}>Participez à 100 DT</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Available Now</Text>
+          <TouchableOpacity onPress={() => handleViewAll('available')}>
+            <Text style={styles.viewAll}>View All</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView horizontal style={styles.horizontalScroll}>
+          {rooms.length > 0 ? (
+            rooms.map((room) => (
+              <View key={room.id}>
+                <AuctionCard room={room} onPress={() => handlePress(room)} />
+              </View>
+            ))
+          ) : (
+            <Text>No rooms available</Text>
+          )}
+        </ScrollView>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Closed Auctions</Text>
+          <TouchableOpacity onPress={() => handleViewAll('closed')}>
+            <Text style={styles.viewAll}>View All</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView horizontal style={styles.horizontalScroll}>
+          {closedRooms.length > 0 ? (
+            closedRooms.map((room) => (
+              <View key={room.id}>
+                <AuctionCard room={room} onPress={() => handlePress(room)} />
+              </View>
+            ))
+          ) : (
+            <Text>No closed auctions available</Text>
+          )}
+        </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -150,7 +177,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.primary,
     fontFamily: Font["poppins-bold"],
-
   },
   subheading: {
     fontSize: 18,
@@ -158,7 +184,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     paddingLeft: 5,
     fontFamily: Font["poppins-semiBold"],
-
   },
   currentAuction: {
     backgroundColor: Colors.primary,
@@ -176,17 +201,21 @@ const styles = StyleSheet.create({
   auctionDetails: {
     flex: 1,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   carModel: {
     fontSize: 18,
     fontWeight: 'bold',
     color: Colors.onPrimary,
     fontFamily: Font["poppins-bold"],
-
   },
   auctionStatus: {
     fontSize: 14,
     color: Colors.onPrimary,
-    marginBottom:10,
+    marginBottom: 10,
     fontFamily: Font["poppins-regular"],
   },
   sectionHeader: {
@@ -198,16 +227,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.primary, 
+    color: Colors.primary,
     fontFamily: Font["poppins-bold"],
- 
   },
   viewAll: {
     color: Colors.primary,
     fontSize: 16,
     fontWeight: 'bold',
     fontFamily: Font["poppins-bold"],
-
   },
   horizontalScroll: {
     marginVertical: 10,
@@ -217,7 +244,7 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 50,
   },
-  horizontal:{
+  horizontal: {
     padding: 10,
     flexDirection: 'row',
   },
@@ -233,9 +260,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     fontFamily: Font["poppins-bold"],
-
   },
-
 });
 
 export default HomeScreen;

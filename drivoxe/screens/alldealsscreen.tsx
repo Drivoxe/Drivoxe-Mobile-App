@@ -23,7 +23,7 @@ const Alldeals = () => {
       } finally {
         setTimeout(() => {
           setLoading(false);
-        }, 2000); // Add delay to simulate loading
+        }, 500); // Add delay to simulate loading
       }
     };
 
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   container: {
-    flex: 0,
+    flex: 1,
     backgroundColor: '#FFF',
     
     paddingLeft: 0,
@@ -142,6 +142,8 @@ const styles = StyleSheet.create({
 
   },
   grid: {
+    marginTop:10,
+    marginBottom:10,
     paddingRight: 0,
     backgroundColor: '#FFF',
 
